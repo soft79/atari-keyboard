@@ -2,7 +2,7 @@
 
 Convert an Atari 600/800/1200 XL into a USB keyboard.
 
-I bricked my Atari mainboard. My goal is to use the keyboard on a Raspberry PI in combination with an Atari emulator (e.g. Atari800).
+I bricked my Atari mainboard. My goal is to use the Atari keyboard that survived on a Raspberry PI in combination with an Atari emulator (e.g. Atari800).
 
 # Requirements
 
