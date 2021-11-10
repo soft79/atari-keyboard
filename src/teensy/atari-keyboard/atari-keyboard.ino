@@ -20,22 +20,23 @@
 #define RIBBON_15 26
 #define RIBBON_16 25
 #define RIBBON_17 24
-//#define RIBBON_18 gnd
-//#define RIBBON_19 n.c.
+//#define RIBBON_18 GND
+//#define RIBBON_19 not connected
 #define RIBBON_20 20
 #define RIBBON_21 21
 #define RIBBON_22 22
 #define RIBBON_23 23
 //#define RIBBON_24 V+
 
+//This input allows us to enable/disable the USB keyboard functionality
+#define PIN_ENABLE_KB 18
+
+
 #define PIN_START RIBBON_20
 #define PIN_SELECT RIBBON_21
 #define PIN_OPTION RIBBON_22
 #define PIN_RESET RIBBON_23
 #define PIN_RSC RIBBON_09
-
-//Allows us to disable the USB keyboard functionality
-#define PIN_ENABLE_KB 18
 
 //RAW POKEY ADDRESSES
 //#define AKEY_SHFT 0x40
@@ -62,23 +63,24 @@ int funcKeyCodes[] = {
 //See also http://www.kbdedit.com/manual/low_level_vk_list.html
 int keyCodes[sizeof(pinsOut)][sizeof(pinsIn)] =
 {
-  { KEY_PAUSE,         KEY_7,       0x00,          KEY_8, KEY_9,     KEY_0,          KEY_MINUS/*<*/,       KEY_EQUAL/*>*/ ,            KEY_BACKSPACE }, //Minus and Shift because there are no designated keys for < and > )
-  { 0x00,              KEY_6,       0x00,          KEY_5, KEY_4,     KEY_3,          KEY_2,                KEY_1,                      KEY_ESC },
-  { 0x00,              KEY_U,       0x00,          KEY_I, KEY_O,     KEY_P,          KEY_UP,               KEY_DOWN,                   KEY_RETURN },
-  { 0x00,              KEY_Y,       0x00,          KEY_T, KEY_R,     KEY_E,          KEY_W,                KEY_Q,                      KEY_TAB },
-  { MODIFIERKEY_CTRL,  0x00/*F1*/,  KEY_J,         KEY_K, KEY_L,     KEY_SEMICOLON,  KEY_LEFT,             KEY_RIGHT,                  0x00/*F2*/ },
-  { 0x00,              0x00,        KEY_H,         KEY_G, KEY_F,     KEY_D,          KEY_S,                KEY_A,                      KEY_CAPS_LOCK},
-  { 0x00,              KEY_N,       KEY_SPACE,     KEY_M, KEY_COMMA, KEY_PERIOD,     KEY_SLASH/*QstnM*/,   KEY_TILDE /*Invers*/,        0x00 }, //atari800 uses KEY_TILDE for inverse
-  { MODIFIERKEY_SHIFT, 0x00/*F3*/,  KEY_F6/*HLP*/, KEY_B, KEY_V,     KEY_C,          KEY_X,                KEY_Z,                      0x00/*F4*/ },
+  { KEY_PAUSE,         KEY_7,       0x00,          KEY_8, KEY_9,     KEY_0,         KEY_MINUS/*<*/,  KEY_EQUAL/*>*/ ,      KEY_BACKSPACE }, //Minus and Shift because there are no designated keys for < and > )
+  { 0x00,              KEY_6,       0x00,          KEY_5, KEY_4,     KEY_3,         KEY_2,           KEY_1,                KEY_ESC },
+  { 0x00,              KEY_U,       0x00,          KEY_I, KEY_O,     KEY_P,         KEY_UP,          KEY_DOWN,             KEY_RETURN },
+  { 0x00,              KEY_Y,       0x00,          KEY_T, KEY_R,     KEY_E,         KEY_W,           KEY_Q,                KEY_TAB },
+  { MODIFIERKEY_CTRL,  0x00/*F1*/,  KEY_J,         KEY_K, KEY_L,     KEY_SEMICOLON, KEY_LEFT,        KEY_RIGHT,            0x00/*F2*/ },
+  { 0x00,              0x00,        KEY_H,         KEY_G, KEY_F,     KEY_D,         KEY_S,           KEY_A,                KEY_CAPS_LOCK},
+  { 0x00,              KEY_N,       KEY_SPACE,     KEY_M, KEY_COMMA, KEY_PERIOD,    KEY_SLASH,       KEY_TILDE /*Invers*/, 0x00 }, //atari800 uses KEY_TILDE for inverse
+  { MODIFIERKEY_SHIFT, 0x00/*F3*/,  KEY_F6/*HLP*/, KEY_B, KEY_V,     KEY_C,         KEY_X,           KEY_Z,                0x00/*F4*/ },
 };
 
 #define CTRL_IS_PRESSED ((bool)keyStates[4][0])
 #define SHIFT_IS_PRESSED ((bool)keyStates[7][0])
 
 void setup() {
-  Serial.begin(9600);
+  #ifdef DEBUG_SERIAL
+    Serial.begin(9600);
+  #endif
   pinMode(PIN_ENABLE_KB, INPUT_PULLUP);
-  pinMode(PIN_START, INPUT_PULLUP);
       
   for (byte di=0; di< sizeof(pinsIn); di++) {
     pinMode(pinsIn[di], INPUT_PULLUP);
@@ -119,7 +121,7 @@ void updateKeyboardEnabledDisabled() {
 }
 
 /**
- * updateKeyboard()
+ * Detect keypresses / releases and notify a change to the USB
  */
 void updateKeyboard()
 {
@@ -180,7 +182,7 @@ int getKeyCode(byte dq, byte di) {
   int keyCode = 0;
   if (dq < sizeof(pinsOut) && di < sizeof(pinsIn)) keyCode = keyCodes[dq][di];
 
-  //Override keyCodes with certain modifiers
+  //Override keyCodes in combination with modifier-keys
   //Release the same key, even if CTRL/SHIFT state was changed
   if ((bool)keyStates[dq][di]) {
     keyCode=keyStates[dq][di];
