@@ -49,7 +49,7 @@ byte pinsFunc[] = { RIBBON_20, RIBBON_21, RIBBON_22, RIBBON_23 };
 
 bool enableKeyboard = false;
 
-bool keyStates[sizeof(pinsOut)][sizeof(pinsIn)];
+int keyStates[sizeof(pinsOut)][sizeof(pinsIn)]; //Int, we store the sent keyCode, to allow overriding keyCodes with shift/ctrl 
 bool funcStates[4]; //Function keys: Start,select,option,reset
 
 int funcKeyCodes[] = { 
@@ -59,18 +59,21 @@ int funcKeyCodes[] = {
   KEY_F5  //Reset
 };
 
+//See also http://www.kbdedit.com/manual/low_level_vk_list.html
 int keyCodes[sizeof(pinsOut)][sizeof(pinsIn)] =
 {
-  { KEY_PAUSE,         KEY_7,       0x00,          KEY_8, KEY_9,     KEY_0,          KEY_LEFT_BRACE/*<*/,  KEY_RIGHT_BRACE/*>*/ ,      KEY_BACKSPACE },
+  { KEY_PAUSE,         KEY_7,       0x00,          KEY_8, KEY_9,     KEY_0,          KEY_MINUS/*<*/,       KEY_EQUAL/*>*/ ,            KEY_BACKSPACE }, //Minus and Shift because there are no designated keys for < and > )
   { 0x00,              KEY_6,       0x00,          KEY_5, KEY_4,     KEY_3,          KEY_2,                KEY_1,                      KEY_ESC },
   { 0x00,              KEY_U,       0x00,          KEY_I, KEY_O,     KEY_P,          KEY_UP,               KEY_DOWN,                   KEY_RETURN },
   { 0x00,              KEY_Y,       0x00,          KEY_T, KEY_R,     KEY_E,          KEY_W,                KEY_Q,                      KEY_TAB },
   { MODIFIERKEY_CTRL,  0x00/*F1*/,  KEY_J,         KEY_K, KEY_L,     KEY_SEMICOLON,  KEY_LEFT,             KEY_RIGHT,                  0x00/*F2*/ },
   { 0x00,              0x00,        KEY_H,         KEY_G, KEY_F,     KEY_D,          KEY_S,                KEY_A,                      KEY_CAPS_LOCK},
-  { 0x00,              KEY_N,       KEY_SPACE,     KEY_M, KEY_COMMA, KEY_PERIOD,     KEY_SLASH/*QstnM*/,   KEY_TILDE/*Invers*/,        0x00 },
+  { 0x00,              KEY_N,       KEY_SPACE,     KEY_M, KEY_COMMA, KEY_PERIOD,     KEY_SLASH/*QstnM*/,   KEY_TILDE /*Invers*/,        0x00 }, //atari800 uses KEY_TILDE for inverse
   { MODIFIERKEY_SHIFT, 0x00/*F3*/,  KEY_F6/*HLP*/, KEY_B, KEY_V,     KEY_C,          KEY_X,                KEY_Z,                      0x00/*F4*/ },
 };
 
+#define CTRL_IS_PRESSED ((bool)keyStates[4][0])
+#define SHIFT_IS_PRESSED ((bool)keyStates[7][0])
 
 void setup() {
   Serial.begin(9600);
@@ -88,7 +91,7 @@ void setup() {
   
   for (byte dq = 0; dq < sizeof(pinsOut); dq++) {
     for (byte di = 0; di < sizeof(pinsIn); di++) {
-      keyStates[dq][di] = false;
+      keyStates[dq][di] = 0;
     }
   }
 
@@ -129,11 +132,12 @@ void updateKeyboard()
     {
       bool state = digitalRead(pinsIn[di]) == LOW;
 
-      if(state == keyStates[dq][di]) continue; //State not changed
-
-      keyStates[dq][di] = state;
+      if(state == (bool)keyStates[dq][di]) continue; //State not changed
 
       int keyCode = getKeyCode(dq, di);
+
+      keyStates[dq][di] = state ? keyCode : 0;
+
       notifyChange(keyCode, state);
     }
     digitalWrite(pinsOut[dq], HIGH);
@@ -176,9 +180,18 @@ int getKeyCode(byte dq, byte di) {
   int keyCode = 0;
   if (dq < sizeof(pinsOut) && di < sizeof(pinsIn)) keyCode = keyCodes[dq][di];
 
+  //Override keyCodes with certain modifiers
+  //Release the same key, even if CTRL/SHIFT state was changed
+  if ((bool)keyStates[dq][di]) {
+    keyCode=keyStates[dq][di];
+  } else if (SHIFT_IS_PRESSED || CTRL_IS_PRESSED) {
+    if (dq == 0 && di == 6) keyCode = KEY_HOME;  //Atari CLEAR
+    if (dq == 0 && di == 7) keyCode = KEY_INSERT; //Atari INSERT
+  }
+
   #ifdef DEBUG_SERIAL
     char txt[60]; 
-    sprintf(txt, "Q%d/I%d Code:%d\r\n", dq, di, keyCode);
+    sprintf(txt, "Q%d/I%d Code:%d SHIFT:%d CTRL:%d\r\n", dq, di, keyCode, SHIFT_IS_PRESSED, CTRL_IS_PRESSED);
     Serial.print(txt);
   #endif
 
