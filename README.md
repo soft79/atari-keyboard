@@ -20,7 +20,7 @@ I bricked my Atari mainboard. My goal is to use the keyboard of the Atari on a R
 
 - [Arduino IDE](https://www.arduino.cc/en/software)
 - [Teensyduino software addon for the Arduino software](https://www.pjrc.com/teensy/td_download.html)
-- [Microsoft Keyboard Layout Creator](https://www.microsoft.com/en-us/download/details.aspx?id=102134)
+- [Microsoft Keyboard Layout Creator](https://www.microsoft.com/en-us/download/details.aspx?id=102134) (for Windows only)
 
 # Wiring
 
