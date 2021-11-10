@@ -36,6 +36,8 @@ Find RIBBON_01 u/i RIBBON_24 in the source file to see to which Teensy pins I co
 Connect ribbon pin 18 to GND and pin 24 to +3.3V. 
 I use the Teensy 3.3 output to power the keyboard, please note that most Teensy boards can handle up to 3.3V on the I/O pins.
 
+I also added a 'deadman switch' to enable/disable keyboard functionality of the keyboard in case the keyboard sends funny keystrokes to your PC during development. Wire input PIN_ENABLE_KB to GND to enable the USB Keyboard functionality.
+
 # Special key mappings
 
 Key mappings are optimized for usage with the [Atari800 emulator](https://atari800.github.io/).
