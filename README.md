@@ -27,7 +27,7 @@ I bricked my Atari mainboard. My goal is to use the keyboard of the Atari on a R
 Requires the 24-pin ribbon connector pins to be connected to a Teensy 3.6 or compatible board. 
 
 **Important** Please verify that the pinout of your Atari keyboard ribbon is the same, 
-I don't know if there exist different variations of the pinout. 
+I don't know if different variations of the pinout exist. 
 My Ribbon doesn't have a wire for connector 19.
 
 ![Keyboard matrix](Documents/KeyboardMatrix.png)
