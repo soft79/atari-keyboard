@@ -115,7 +115,9 @@ void loop() {
 void updateKeyboardEnabledDisabled() {
   bool useKb = digitalRead(PIN_ENABLE_KB) == LOW;
   if (useKb != enableKeyboard) {
-    Serial.print(useKb ? "KB ON" : "KB OFF");
+    #ifdef DEBUG_SERIAL
+      Serial.print(useKb ? "KB ON" : "KB OFF");
+    #endif
     enableKeyboard = useKb;
   }  
 }
